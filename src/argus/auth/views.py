@@ -1,7 +1,10 @@
 from django.contrib.auth import logout
 from django.conf import settings
+from django.http import HttpResponse
+from django.urls import reverse
 
 from drf_spectacular.utils import extend_schema
+from social_django.utils import load_strategy, load_backend
 from rest_framework import generics
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -13,6 +16,19 @@ from rest_framework.viewsets import ModelViewSet
 from argus.drf.permissions import IsOwner
 from .models import PhoneNumber, User
 from .serializers import BasicUserSerializer, PhoneNumberSerializer, UserSerializer
+
+
+# Not DRF!
+def saml_metadata_view(request):
+    complete_url = reverse("social:complete", args=("saml",))
+    saml_backend = load_backend(
+        load_strategy(request),
+        "saml",
+        redirect_uri=complete_url,
+    )
+    metadata, errors = saml_backend.generate_metadata_xml()
+    if not errors:
+        return HttpResponse(content=metadata, content_type="text/xml")
 
 
 class ObtainNewAuthToken(ObtainAuthToken):

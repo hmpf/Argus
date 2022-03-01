@@ -14,6 +14,8 @@ __all__ = [
     "get_bool_env",
     "get_str_env",
     "get_int_env",
+    "get_str_from_file",
+    "get_str_from_asciiarmorfile",
     "setup_logging",
     "update_loglevels",
 ]
@@ -59,6 +61,26 @@ def get_int_env(envname, default=0, required=False):
         return default
     env = str(env).strip()
     return int(env)
+
+
+def get_str_from_file(filename, encoding=None):
+    with open(filename, encoding=encoding) as F:
+        text = F.read()
+    return text
+
+
+def get_str_from_asciiarmorfile(filename, strip_armor=True):
+    text = get_str_from_file(filename, encoding="ascii")
+    if strip_armor:
+        lines = [line.strip() for line in text.strip().split("\n")]
+        prefixes_to_strip = ("-----BEGIN CERTIFICATE-----", "-----BEGIN PRIVATE KEY-----")
+        if lines[0] in prefixes_to_strip:
+            lines = lines[1:]
+        suffixes_to_strip = ("-----END CERTIFICATE-----", "-----END PRIVATE KEY-----")
+        if lines[-1] in suffixes_to_strip:
+            lines = lines[:-1]
+        text = "\n".join(lines)
+    return text
 
 
 def setup_logging(dotted_path=None):

@@ -13,20 +13,25 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path, re_path
+from django.views.decorators.csrf import csrf_exempt
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from social_django.urls import extra
 
-from argus.auth.views import ObtainNewAuthToken
+from argus.auth.views import ObtainNewAuthToken, saml_metadata_view
 from argus.dataporten import views as dataporten_views
 from argus.site.views import error, MetadataView
 
 
+extra = getattr(settings, "TRAILING_SLASH", True) and "/" or ""
 psa_urls = [
+    path("saml-metadata/", saml_metadata_view, name="social:saml-metadata"),
+    re_path(fr"^complete/(?P<backend>saml){extra}$", csrf_exempt(dataporten_views.login_wrapper), name="complete"),
     # Overrides social_django's `complete` view
-    re_path(fr"^complete/(?P<backend>[^/]+){extra}$", dataporten_views.login_wrapper, name="complete"),
+    # re_path(fr"^complete/(?P<backend>[^/]+){extra}$", dataporten_views.login_wrapper, name="complete"),
     path("", include("social_django.urls", namespace="social")),
 ]
 
