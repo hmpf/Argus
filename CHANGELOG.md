@@ -31,6 +31,9 @@ read by developers.
   added integration test tags.
 - Improve query in notification profile signal test and add clarifying comment.
 - Ran black again on whole code base.
+- In media plugins rename the function `is_deletable` to
+  `raise_if_not_deletable` and make it raise an error if a destination is not
+  deletable.
 
 ### Dependencies
 - Upgrade from pyjwt 2.0.1 to 2.4.0
