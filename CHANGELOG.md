@@ -4,6 +4,39 @@ read by developers.
 
 ## [Unreleased]
 
+## [1.8.0] - 2022-10-06
+
+### Added
+- A notification profile can now have a name.
+- Docstrings and type hints to functions of media plugins.
+- Tests for the email and sms destination serializer in case of invalid input
+  for updating.
+
+### Fixed
+- Posting the phone number of a notification profile in API v1 as primary key,
+  not as string and getting a phone number object instead of just the phone
+  number as string.
+- Fix a notification profile test to include the phone number changes.
+- Broken links and formatting in documentation.
+- Fix notification profile serializer test to actually change phone number when
+  updating.
+- Make code snippets visible in release checklist in documentation.
+
+### Changed
+- One timeslot can now be used by multiple notification profiles.
+- Replaced wildcard imports with specific imports.
+- Moved the notification profile Github test to parent folder and added
+  regression tag.
+- Renamed notification profile serializer tests to be more descriptive and
+  added integration test tags.
+- Improve query in notification profile signal test and add clarifying comment.
+- Ran black again on whole code base.
+
+### Dependencies
+- Upgrade from pyjwt 2.0.1 to 2.4.0
+- Upgrade from django 3.2.13 to 3.2.15
+- Upgrade from black 20.8b1 to 22.3.0 in pre-commit
+
 ## [1.7.0]
 
 ### Changed
