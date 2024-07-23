@@ -4,9 +4,10 @@ from django.utils.timezone import make_aware
 
 from argus.filter.factories import FilterFactory
 from argus.incident.factories import SourceSystemFactory, TagFactory
-from argus.incident.models import Incident
+from argus.incident.models import Incident, Event
 from argus.filter.queryset_filters import (
     QuerySetFilter,
+    _incidents_fitting_event_types,
     _incidents_fitting_maxlevel,
     _incidents_fitting_tristates,
     _incidents_with_source_systems,
@@ -28,6 +29,8 @@ class FilteredIncidentsHelpersTests(TestCase, IncidentAPITestCaseHelper):
         disconnect_signals()
         super().init_test_objects()
         self.all_incidents = Incident.objects.all()
+        for incident in self.all_incidents:
+            incident.create_first_event()
 
     def teardown(self):
         connect_signals()
@@ -72,6 +75,28 @@ class FilteredIncidentsHelpersTests(TestCase, IncidentAPITestCaseHelper):
         maxlevel_filtered_incidents = list(_incidents_fitting_maxlevel(self.all_incidents, {"maxlevel": 5}))
         self.assertIn(self.incident1, maxlevel_filtered_incidents)
         self.assertIn(self.incident2, maxlevel_filtered_incidents)
+
+    def test_incidents_fitting_event_types_empty_finds_no_incidents(self):
+        # all incidents have at least one event
+        event_types_filtered_incidents = list(_incidents_fitting_event_types(self.all_incidents, {"event_types": []}))
+        self.assertIn(self.incident1, event_types_filtered_incidents)
+        self.assertIn(self.incident2, event_types_filtered_incidents)
+
+    def test_incidents_fitting_event_types_finds_incidents_with_this_event_type(self):
+        # all incidents have at least one event
+        event_types_filtered_incidents = list(
+            _incidents_fitting_event_types(self.all_incidents, {"event_types": [Event.Type.STATELESS]})
+        )
+        print(event_types_filtered_incidents)
+        self.assertIn(self.incident1, event_types_filtered_incidents)
+        self.assertIn(self.incident2, event_types_filtered_incidents)
+
+    def test_incidents_fitting_event_types_doesnot_find_incidents_with_this_event_type(self):
+        event_types_filtered_incidents = list(
+            _incidents_fitting_event_types(self.all_incidents, {"event_types": [Event.Type.OTHER]})
+        )
+        self.assertNotIn(self.incident1, event_types_filtered_incidents)
+        self.assertNotIn(self.incident2, event_types_filtered_incidents)
 
 
 @tag("database", "queryset-filter")
