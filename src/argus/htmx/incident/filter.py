@@ -173,6 +173,7 @@ class FilterListView(FilterMixin, ListView):
 def incident_list_filter(request, qs, use_empty_filter=False):
     LOG.debug("incident_list_filter: GET at start: %s", request.GET)
     filter_pk, filter_obj = request.session.get("selected_filter", None), None
+    LOG.debug("incident_list_filter: GET at start: %s", request.GET)
     if filter_pk:
         filter_obj = Filter.objects.get(pk=filter_pk)
     if filter_obj:

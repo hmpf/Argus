@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from django import forms
+from django.utils.timezone import now as tznow
 
 from argus.htmx.constants import (
     PAGE_SIZE_CHOICES,
@@ -6,6 +9,7 @@ from argus.htmx.constants import (
     TIMEFRAME_CHOICES,
     TIMEFRAME_DEFAULT,
 )
+from argus.htmx.forms import IncidentListForm
 
 # modals
 
@@ -36,24 +40,47 @@ class IncidentListRefreshInfoSelect(forms.Select):
     template_name = "htmx/components/incident_list_refresh_info_select.html"
 
 
-# incident filter, not stored
+# incident filter forms
 
 
-class PageSizeForm(forms.Form):
+class PageNumberForm(IncidentListForm):
+    fieldname = "page"
+    field_initial = 1
+
+    page = forms.IntegerField(required=False, initial=field_initial, min_value=field_initial)
+
+
+class PageSizeForm(IncidentListForm):
+    fieldname = "page_size"
+    field_initial = PAGE_SIZE_DEFAULT
+
     page_size = forms.TypedChoiceField(
         required=False,
         choices=PAGE_SIZE_CHOICES,
         coerce=int,
-        initial=PAGE_SIZE_DEFAULT,
+        initial=field_initial,
         widget=IncidentListRefreshInfoSelect,
     )
 
 
-class TimeframeForm(forms.Form):
+## not stored
+
+
+class TimeframeForm(IncidentListForm):
+    fieldname = "timeframe"
+    field_initial = TIMEFRAME_DEFAULT
+
     timeframe = forms.TypedChoiceField(
         required=False,
         choices=TIMEFRAME_CHOICES,
         coerce=int,
-        initial=TIMEFRAME_DEFAULT,
+        initial=field_initial,
         widget=IncidentListRefreshInfoSelect,
     )
+
+    def filter(self, queryset):
+        timeframe = self.get_clean_value()
+        if timeframe:
+            after = tznow() - timedelta(seconds=timeframe * 60)
+            queryset = queryset.filter(start_time__gte=after)
+        return queryset
